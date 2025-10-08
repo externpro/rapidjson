@@ -19,4 +19,9 @@ Dockerfile text
 # Denote all files that are truly binary and should not be modified.
 *.png binary
 *.jpg binary
-*.json binary
+bin/**/*.json binary
+library.json binary
+package.json binary
+
+# Exceptions for JSON files that should be treated as text
+CMakePresets*.json text eol=lf
