@@ -7,16 +7,13 @@ if(POLICY CMP0054)
   cmake_policy(SET CMP0054 NEW)
 endif()
 
+set(CMAKE_PROJECT_TOP_LEVEL_INCLUDES .devcontainer/cmake/xproinc.cmake)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
 
 PROJECT(RapidJSON CXX)
 
 include(GNUInstallDirs)
 include(xpflags)
-if(DEFINED XP_NAMESPACE)
-  set(nameSpace NAMESPACE ${XP_NAMESPACE}::)
-  set(XP_OPT_INSTALL EXCLUDE_FROM_ALL)
-endif()
 
 set(LIB_MAJOR_VERSION "1")
 set(LIB_MINOR_VERSION "1")
@@ -113,9 +110,24 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 string(TOLOWER ${PROJECT_NAME} lib_name)
 add_library(${lib_name} INTERFACE)
 target_include_directories(${lib_name} INTERFACE $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+
+function(callPackageDevel)
+  set(lib ${lib_name})
+  string(PREPEND lib "${XP_NAMESPACE}::")
+  set(CMAKE_PROJECT_NAME ${lib_name})
+  xpPackageDevel(TARGETS_FILE ${targetsFile} LIBRARIES ${lib})
+endfunction()
+
 set(targetsFile ${lib_name}-targets)
-install(TARGETS ${lib_name} EXPORT ${targetsFile})
-install(EXPORT ${targetsFile} DESTINATION ${CMAKE_INSTALL_DIR} ${nameSpace})
+if(DEFINED XP_NAMESPACE)
+  set(nameSpace NAMESPACE ${XP_NAMESPACE}::)
+  callPackageDevel()
+  set(RAPIDJSON_COMPONENT devel)
+else()
+  set(RAPIDJSON_COMPONENT dev)
+endif()
+install(TARGETS ${lib_name} EXPORT ${targetsFile} COMPONENT devel)
+install(EXPORT ${targetsFile} DESTINATION ${CMAKE_INSTALL_DIR} ${nameSpace} COMPONENT devel)
 
 if(RAPIDJSON_BUILD_DOC)
     add_subdirectory(doc)
@@ -144,22 +156,19 @@ IF (UNIX OR CYGWIN)
                   ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pc
                   @ONLY)
   INSTALL (FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pc
-      ${XP_OPT_INSTALL}
       DESTINATION "${LIB_INSTALL_DIR}/pkgconfig"
       COMPONENT pkgconfig)
 ENDIF()
 
 install(FILES readme.md
-        ${XP_OPT_INSTALL}
         DESTINATION "${DOC_INSTALL_DIR}"
         COMPONENT doc)
 
 install(DIRECTORY include/rapidjson
     DESTINATION "${INCLUDE_INSTALL_DIR}"
-    COMPONENT dev)
+    COMPONENT ${RAPIDJSON_COMPONENT})
 
 install(DIRECTORY example/
-    ${XP_OPT_INSTALL}
     DESTINATION "${DOC_INSTALL_DIR}/examples"
     COMPONENT examples
     # Following patterns are for excluding the intermediate/object files
@@ -183,6 +192,5 @@ CONFIGURE_FILE(${PROJECT_NAME}ConfigVersion.cmake.in
 INSTALL(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
     ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
-    ${XP_OPT_INSTALL}
     DESTINATION "${CMAKE_INSTALL_DIR}"
     COMPONENT dev)
