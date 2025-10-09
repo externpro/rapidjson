@@ -10,6 +10,8 @@ set(LIB_VERSION_STRING "${LIB_MAJOR_VERSION}.${LIB_MINOR_VERSION}.${LIB_PATCH_VE
 
 PROJECT(RapidJSON VERSION "${LIB_VERSION_STRING}" LANGUAGES CXX)
 
+include(GNUInstallDirs)
+
 # compile in release with debug info mode by default
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
@@ -145,16 +147,13 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "XL")
 endif()
 
 #add extra search paths for libraries and includes
-SET(INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "The directory the headers are installed in")
-SET(LIB_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/lib" CACHE STRING "Directory where lib will install")
-SET(DOC_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/share/doc/${PROJECT_NAME}" CACHE PATH "Path to the documentation")
-
-IF(UNIX OR CYGWIN)
-    SET(_CMAKE_INSTALL_DIR "${LIB_INSTALL_DIR}/cmake/${PROJECT_NAME}")
-ELSEIF(WIN32)
-    SET(_CMAKE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/cmake")
-ENDIF()
-SET(CMAKE_INSTALL_DIR "${_CMAKE_INSTALL_DIR}" CACHE PATH "The directory cmake files are installed in")
+SET(INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_INCLUDEDIR}" CACHE PATH "The directory the headers are installed in")
+SET(LIB_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}" CACHE STRING "Directory where lib will install")
+SET(DOC_INSTALL_DIR "${CMAKE_INSTALL_DATADIR}/doc/${PROJECT_NAME}" CACHE PATH "Path to the documentation")
+if(NOT DEFINED XP_INSTALL_CMAKEDIR)
+    set(XP_INSTALL_CMAKEDIR "${CMAKE_INSTALL_DATADIR}/cmake")
+endif()
+SET(CMAKE_INSTALL_DIR "${XP_INSTALL_CMAKEDIR}" CACHE PATH "The directory cmake files are installed in")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
@@ -231,10 +230,10 @@ CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}ConfigVersion.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake @ONLY)
 
 # ... for the install tree
-SET( CMAKECONFIG_INSTALL_DIR ${LIB_INSTALL_DIR}/cmake/${PROJECT_NAME} )
+SET( CMAKECONFIG_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DIR}" )
 FILE( RELATIVE_PATH REL_INCLUDE_DIR
     "${CMAKECONFIG_INSTALL_DIR}"
-    "${CMAKE_INSTALL_PREFIX}/include" )
+    "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}" )
 
 SET( ${PROJECT_NAME}_INCLUDE_DIR "\${${PROJECT_NAME}_CMAKE_DIR}/${REL_INCLUDE_DIR}" )
 SET( CONFIG_SOURCE_DIR )
