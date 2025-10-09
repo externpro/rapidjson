@@ -11,6 +11,7 @@ set(LIB_VERSION_STRING "${LIB_MAJOR_VERSION}.${LIB_MINOR_VERSION}.${LIB_PATCH_VE
 PROJECT(RapidJSON VERSION "${LIB_VERSION_STRING}" LANGUAGES CXX)
 
 include(GNUInstallDirs)
+include(xpflags)
 
 # compile in release with debug info mode by default
 if(NOT CMAKE_BUILD_TYPE)
@@ -157,6 +158,22 @@ SET(CMAKE_INSTALL_DIR "${XP_INSTALL_CMAKEDIR}" CACHE PATH "The directory cmake f
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
+function(callPackageDevel)
+    set(lib ${PROJECT_NAME})
+    string(PREPEND lib ${XP_NAMESPACE}::)
+    string(TOLOWER ${PROJECT_NAME} CMAKE_PROJECT_NAME)
+    xpPackageDevel(TARGETS_FILE ${targetsFile} LIBRARIES ${lib})
+endfunction()
+
+set(targetsFile ${PROJECT_NAME}-targets)
+if(DEFINED XP_NAMESPACE)
+    set(nameSpace NAMESPACE ${XP_NAMESPACE}::)
+    callPackageDevel()
+    set(RAPIDJSON_COMPONENT devel)
+else()
+    set(RAPIDJSON_COMPONENT dev)
+endif()
+
 if(RAPIDJSON_BUILD_DOC)
     add_subdirectory(doc)
 endif()
@@ -193,13 +210,13 @@ install(FILES readme.md
         COMPONENT doc)
 
 # Add an interface target to export it
-add_library(RapidJSON INTERFACE)
+add_library(${PROJECT_NAME} INTERFACE)
 
-target_include_directories(RapidJSON INTERFACE $<INSTALL_INTERFACE:include>)
+target_include_directories(${PROJECT_NAME} INTERFACE $<INSTALL_INTERFACE:include>)
 
 install(DIRECTORY include/rapidjson
     DESTINATION "${INCLUDE_INSTALL_DIR}"
-    COMPONENT dev)
+    COMPONENT ${RAPIDJSON_COMPONENT})
 
 install(DIRECTORY example/
     DESTINATION "${DOC_INSTALL_DIR}/examples"
@@ -252,6 +269,6 @@ IF(CMAKE_INSTALL_DIR)
         DESTINATION "${CMAKE_INSTALL_DIR}"
         COMPONENT dev)
 
-    INSTALL(TARGETS RapidJSON EXPORT RapidJSON-targets)
-    INSTALL(EXPORT RapidJSON-targets DESTINATION ${CMAKE_INSTALL_DIR})
+    INSTALL(TARGETS ${PROJECT_NAME} EXPORT ${targetsFile} COMPONENT ${RAPIDJSON_COMPONENT})
+    INSTALL(EXPORT ${targetsFile} DESTINATION ${CMAKE_INSTALL_DIR} ${nameSpace} COMPONENT ${RAPIDJSON_COMPONENT})
 ENDIF()
