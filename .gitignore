@@ -25,5 +25,10 @@ Doxyfile.zh-cn
 DartConfiguration.tcl
 *.nupkg
 
+# externpro
+.env
+_bld*/
+docker-compose.override.yml
+
 # Files created by OS
 *.DS_Store

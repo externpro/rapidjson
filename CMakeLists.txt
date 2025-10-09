@@ -1,5 +1,6 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.5...3.31)
 
+set(CMAKE_PROJECT_TOP_LEVEL_INCLUDES .devcontainer/cmake/xproinc.cmake)
 SET(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
 
 set(LIB_MAJOR_VERSION "1")
@@ -8,6 +9,9 @@ set(LIB_PATCH_VERSION "0")
 set(LIB_VERSION_STRING "${LIB_MAJOR_VERSION}.${LIB_MINOR_VERSION}.${LIB_PATCH_VERSION}")
 
 PROJECT(RapidJSON VERSION "${LIB_VERSION_STRING}" LANGUAGES CXX)
+
+include(GNUInstallDirs)
+include(xpflags)
 
 # compile in release with debug info mode by default
 if(NOT CMAKE_BUILD_TYPE)
@@ -144,25 +148,38 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "XL")
 endif()
 
 #add extra search paths for libraries and includes
-SET(INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "The directory the headers are installed in")
-SET(LIB_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/lib" CACHE STRING "Directory where lib will install")
-SET(DOC_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/share/doc/${PROJECT_NAME}" CACHE PATH "Path to the documentation")
-
-IF(UNIX OR CYGWIN)
-    SET(_CMAKE_INSTALL_DIR "${LIB_INSTALL_DIR}/cmake/${PROJECT_NAME}")
-ELSEIF(WIN32)
-    SET(_CMAKE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/cmake")
-ENDIF()
-SET(CMAKE_INSTALL_DIR "${_CMAKE_INSTALL_DIR}" CACHE PATH "The directory cmake files are installed in")
+SET(INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_INCLUDEDIR}" CACHE PATH "The directory the headers are installed in")
+SET(LIB_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}" CACHE STRING "Directory where lib will install")
+SET(DOC_INSTALL_DIR "${CMAKE_INSTALL_DATADIR}/doc/${PROJECT_NAME}" CACHE PATH "Path to the documentation")
+if(NOT DEFINED XP_INSTALL_CMAKEDIR)
+    set(XP_INSTALL_CMAKEDIR "${CMAKE_INSTALL_DATADIR}/cmake")
+endif()
+SET(CMAKE_INSTALL_DIR "${XP_INSTALL_CMAKEDIR}" CACHE PATH "The directory cmake files are installed in")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+function(callPackageDevel)
+    set(lib ${PROJECT_NAME})
+    string(PREPEND lib ${XP_NAMESPACE}::)
+    string(TOLOWER ${PROJECT_NAME} CMAKE_PROJECT_NAME)
+    xpPackageDevel(TARGETS_FILE ${targetsFile} LIBRARIES ${lib})
+endfunction()
+
+set(targetsFile ${PROJECT_NAME}-targets)
+if(DEFINED XP_NAMESPACE)
+    set(nameSpace NAMESPACE ${XP_NAMESPACE}::)
+    callPackageDevel()
+    set(RAPIDJSON_COMPONENT devel)
+else()
+    set(RAPIDJSON_COMPONENT dev)
+endif()
 
 if(RAPIDJSON_BUILD_DOC)
     add_subdirectory(doc)
 endif()
 
 add_custom_target(travis_doc)
-add_custom_command(TARGET travis_doc
+add_custom_command(TARGET travis_doc POST_BUILD
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/travis-doxygen.sh)
 
 if(RAPIDJSON_BUILD_EXAMPLES)
@@ -193,13 +210,13 @@ install(FILES readme.md
         COMPONENT doc)
 
 # Add an interface target to export it
-add_library(RapidJSON INTERFACE)
+add_library(${PROJECT_NAME} INTERFACE)
 
-target_include_directories(RapidJSON INTERFACE $<INSTALL_INTERFACE:include>)
+target_include_directories(${PROJECT_NAME} INTERFACE $<INSTALL_INTERFACE:include>)
 
 install(DIRECTORY include/rapidjson
     DESTINATION "${INCLUDE_INSTALL_DIR}"
-    COMPONENT dev)
+    COMPONENT ${RAPIDJSON_COMPONENT})
 
 install(DIRECTORY example/
     DESTINATION "${DOC_INSTALL_DIR}/examples"
@@ -230,10 +247,10 @@ CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}ConfigVersion.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake @ONLY)
 
 # ... for the install tree
-SET( CMAKECONFIG_INSTALL_DIR ${LIB_INSTALL_DIR}/cmake/${PROJECT_NAME} )
+SET( CMAKECONFIG_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DIR}" )
 FILE( RELATIVE_PATH REL_INCLUDE_DIR
     "${CMAKECONFIG_INSTALL_DIR}"
-    "${CMAKE_INSTALL_PREFIX}/include" )
+    "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}" )
 
 SET( ${PROJECT_NAME}_INCLUDE_DIR "\${${PROJECT_NAME}_CMAKE_DIR}/${REL_INCLUDE_DIR}" )
 SET( CONFIG_SOURCE_DIR )
@@ -252,6 +269,6 @@ IF(CMAKE_INSTALL_DIR)
         DESTINATION "${CMAKE_INSTALL_DIR}"
         COMPONENT dev)
 
-    INSTALL(TARGETS RapidJSON EXPORT RapidJSON-targets)
-    INSTALL(EXPORT RapidJSON-targets DESTINATION ${CMAKE_INSTALL_DIR})
+    INSTALL(TARGETS ${PROJECT_NAME} EXPORT ${targetsFile} COMPONENT ${RAPIDJSON_COMPONENT})
+    INSTALL(EXPORT ${targetsFile} DESTINATION ${CMAKE_INSTALL_DIR} ${nameSpace} COMPONENT ${RAPIDJSON_COMPONENT})
 ENDIF()
