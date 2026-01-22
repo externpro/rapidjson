@@ -158,10 +158,12 @@ SET(CMAKE_INSTALL_DIR "${_CMAKE_INSTALL_DIR}" CACHE PATH "The directory cmake fi
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
+set(lib_name ${PROJECT_NAME})
+set(targetsFile ${PROJECT_NAME}-targets)
 if(DEFINED XP_NAMESPACE)
     set(XP_INSTALL_CMAKEDIR "${CMAKE_INSTALL_DIR}")
     xpExternPackage(REPO_NAME rapidjson NAMESPACE ${XP_NAMESPACE}
-      TARGETS_FILE RapidJSON-targets LIBRARIES RapidJSON
+      TARGETS_FILE ${targetsFile} LIBRARIES ${lib_name}
       BASE v${CMAKE_PROJECT_VERSION}-763 XPDIFF "patch"
       WEB "http://Tencent.github.io/rapidjson/" UPSTREAM "github.com/Tencent/rapidjson"
       DESC "A fast JSON parser/generator for C++ with both SAX/DOM style API"
@@ -208,9 +210,9 @@ install(FILES readme.md
         COMPONENT doc)
 
 # Add an interface target to export it
-add_library(RapidJSON INTERFACE)
+add_library(${lib_name} INTERFACE)
 
-target_include_directories(RapidJSON INTERFACE $<INSTALL_INTERFACE:include>)
+target_include_directories(${lib_name} INTERFACE $<INSTALL_INTERFACE:include>)
 
 install(DIRECTORY include/rapidjson
     DESTINATION "${INCLUDE_INSTALL_DIR}"
@@ -269,6 +271,6 @@ IF(CMAKE_INSTALL_DIR)
         DESTINATION "${CMAKE_INSTALL_DIR}"
         COMPONENT dev)
 
-    INSTALL(TARGETS RapidJSON EXPORT RapidJSON-targets)
-    INSTALL(EXPORT RapidJSON-targets DESTINATION ${CMAKE_INSTALL_DIR} ${nameSpace})
+    INSTALL(TARGETS ${lib_name} EXPORT ${targetsFile})
+    INSTALL(EXPORT ${targetsFile} DESTINATION ${CMAKE_INSTALL_DIR} ${nameSpace})
 ENDIF()
