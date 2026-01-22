@@ -148,27 +148,27 @@ endif()
 SET(INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_INCLUDEDIR}" CACHE PATH "The directory the headers are installed in")
 SET(LIB_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}" CACHE STRING "Directory where lib will install")
 SET(DOC_INSTALL_DIR "${CMAKE_INSTALL_DATADIR}/doc/${PROJECT_NAME}" CACHE PATH "Path to the documentation")
-if(NOT DEFINED XP_INSTALL_CMAKEDIR)
-    set(XP_INSTALL_CMAKEDIR "${CMAKE_INSTALL_DATADIR}/cmake")
-endif()
-SET(CMAKE_INSTALL_DIR "${XP_INSTALL_CMAKEDIR}" CACHE PATH "The directory cmake files are installed in")
+
+IF(NOT DEFINED XP_NAMESPACE)
+    SET(_CMAKE_INSTALL_DIR "${LIB_INSTALL_DIR}/cmake/${PROJECT_NAME}")
+ELSE()
+    SET(_CMAKE_INSTALL_DIR "${CMAKE_INSTALL_DATADIR}/cmake")
+ENDIF()
+SET(CMAKE_INSTALL_DIR "${_CMAKE_INSTALL_DIR}" CACHE PATH "The directory cmake files are installed in")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-function(callPackageDevel)
-    set(lib ${PROJECT_NAME})
-    string(PREPEND lib ${XP_NAMESPACE}::)
-    string(TOLOWER ${PROJECT_NAME} CMAKE_PROJECT_NAME)
-    xpPackageDevel(TARGETS_FILE ${targetsFile} LIBRARIES ${lib})
-endfunction()
-
-set(targetsFile ${PROJECT_NAME}-targets)
 if(DEFINED XP_NAMESPACE)
+    set(XP_INSTALL_CMAKEDIR "${CMAKE_INSTALL_DIR}")
+    xpExternPackage(REPO_NAME rapidjson NAMESPACE ${XP_NAMESPACE}
+      TARGETS_FILE RapidJSON-targets LIBRARIES RapidJSON
+      BASE v${CMAKE_PROJECT_VERSION}-763 XPDIFF "patch"
+      WEB "http://Tencent.github.io/rapidjson/" UPSTREAM "github.com/Tencent/rapidjson"
+      DESC "A fast JSON parser/generator for C++ with both SAX/DOM style API"
+      LICENSE "[MIT](https://raw.githubusercontent.com/Tencent/rapidjson/master/license.txt 'MIT License')"
+      )
     set(nameSpace NAMESPACE ${XP_NAMESPACE}::)
-    callPackageDevel()
-    set(RAPIDJSON_COMPONENT devel)
-else()
-    set(RAPIDJSON_COMPONENT dev)
+    set(OPT_INSTALL EXCLUDE_FROM_ALL)
 endif()
 
 if(RAPIDJSON_BUILD_DOC)
@@ -199,6 +199,7 @@ IF (UNIX OR CYGWIN)
                   @ONLY)
   INSTALL (FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pc
       DESTINATION "${LIB_INSTALL_DIR}/pkgconfig"
+      ${OPT_INSTALL}
       COMPONENT pkgconfig)
 ENDIF()
 
@@ -207,13 +208,13 @@ install(FILES readme.md
         COMPONENT doc)
 
 # Add an interface target to export it
-add_library(${PROJECT_NAME} INTERFACE)
+add_library(RapidJSON INTERFACE)
 
-target_include_directories(${PROJECT_NAME} INTERFACE $<INSTALL_INTERFACE:include>)
+target_include_directories(RapidJSON INTERFACE $<INSTALL_INTERFACE:include>)
 
 install(DIRECTORY include/rapidjson
     DESTINATION "${INCLUDE_INSTALL_DIR}"
-    COMPONENT ${RAPIDJSON_COMPONENT})
+    COMPONENT dev)
 
 install(DIRECTORY example/
     DESTINATION "${DOC_INSTALL_DIR}/examples"
@@ -256,6 +257,7 @@ CONFIGURE_FILE( ${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}Config.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/${PROJECT_NAME}Config.cmake @ONLY )
 
 INSTALL(FILES "${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/${PROJECT_NAME}Config.cmake"
+        ${OPT_INSTALL}
         DESTINATION ${CMAKECONFIG_INSTALL_DIR} )
 
 # Install files
@@ -263,9 +265,10 @@ IF(CMAKE_INSTALL_DIR)
     INSTALL(FILES
         ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
         ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
+        ${OPT_INSTALL}
         DESTINATION "${CMAKE_INSTALL_DIR}"
         COMPONENT dev)
 
-    INSTALL(TARGETS ${PROJECT_NAME} EXPORT ${targetsFile} COMPONENT ${RAPIDJSON_COMPONENT})
-    INSTALL(EXPORT ${targetsFile} DESTINATION ${CMAKE_INSTALL_DIR} ${nameSpace} COMPONENT ${RAPIDJSON_COMPONENT})
+    INSTALL(TARGETS RapidJSON EXPORT RapidJSON-targets)
+    INSTALL(EXPORT RapidJSON-targets DESTINATION ${CMAKE_INSTALL_DIR} ${nameSpace})
 ENDIF()
