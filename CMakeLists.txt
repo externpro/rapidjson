@@ -1,6 +1,5 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.5...3.31)
 
-set(CMAKE_PROJECT_TOP_LEVEL_INCLUDES .devcontainer/cmake/xproinc.cmake)
 SET(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
 
 set(LIB_MAJOR_VERSION "1")
@@ -8,10 +7,8 @@ set(LIB_MINOR_VERSION "1")
 set(LIB_PATCH_VERSION "0")
 set(LIB_VERSION_STRING "${LIB_MAJOR_VERSION}.${LIB_MINOR_VERSION}.${LIB_PATCH_VERSION}")
 
+set(CMAKE_PROJECT_TOP_LEVEL_INCLUDES .devcontainer/cmake/xproinc.cmake)
 PROJECT(RapidJSON VERSION "${LIB_VERSION_STRING}" LANGUAGES CXX)
-
-include(GNUInstallDirs)
-include(xpflags)
 
 # compile in release with debug info mode by default
 if(NOT CMAKE_BUILD_TYPE)
