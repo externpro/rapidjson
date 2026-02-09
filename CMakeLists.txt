@@ -161,7 +161,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 set(lib_name ${PROJECT_NAME})
 set(targetsFile ${PROJECT_NAME}-targets)
 if(DEFINED XP_NAMESPACE)
-    set(XP_INSTALL_CMAKEDIR "${CMAKE_INSTALL_DIR}")
+    set(CMAKE_INSTALL_CMAKEDIR "${CMAKE_INSTALL_DIR}")
     xpExternPackage(REPO_NAME rapidjson NAMESPACE ${XP_NAMESPACE}
       TARGETS_FILE ${targetsFile} LIBRARIES ${lib_name}
       BASE v${CMAKE_PROJECT_VERSION}-763 XPDIFF "patch"
