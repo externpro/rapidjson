@@ -1574,7 +1574,8 @@ TEST(Value, ObjectHelperRangeFor) {
 
     for (int i = 0; i < 10; i++) {
         char name[10];
-        Value n(name, static_cast<SizeType>(sprintf(name, "%d", i)), allocator);
+        SizeType len = static_cast<SizeType>(snprintf(name, sizeof(name), "%d", i));
+        Value n(name, len, allocator);
         x.AddMember(n, i, allocator);
     }
 
@@ -1582,7 +1583,7 @@ TEST(Value, ObjectHelperRangeFor) {
         int i = 0;
         for (auto& m : x.GetObject()) {
             char name[11];
-            sprintf(name, "%d", i);
+            snprintf(name, sizeof(name), "%d", i);
             EXPECT_STREQ(name, m.name.GetString());
             EXPECT_EQ(i, m.value.GetInt());
             i++;
@@ -1593,7 +1594,7 @@ TEST(Value, ObjectHelperRangeFor) {
         int i = 0;
         for (const auto& m : const_cast<const Value&>(x).GetObject()) {
             char name[11];
-            sprintf(name, "%d", i);
+            snprintf(name, sizeof(name), "%d", i);
             EXPECT_STREQ(name, m.name.GetString());
             EXPECT_EQ(i, m.value.GetInt());
             i++;
@@ -1653,7 +1654,7 @@ TEST(Value, BigNestedObject) {
 
     for (SizeType i = 0; i < n; i++) {
         char name1[10];
-        sprintf(name1, format, i);
+        snprintf(name1, sizeof(name1), format, i);
 
         // Value name(name1); // should not compile
         Value name(name1, static_cast<SizeType>(strlen(name1)), allocator);
@@ -1661,7 +1662,7 @@ TEST(Value, BigNestedObject) {
 
         for (SizeType j = 0; j < n; j++) {
             char name2[10];
-            sprintf(name2, format, j);
+            snprintf(name2, sizeof(name2), format, j);
 
             Value name3(name2, static_cast<SizeType>(strlen(name2)), allocator);
             Value number(static_cast<int>(i * n + j));
@@ -1674,11 +1675,11 @@ TEST(Value, BigNestedObject) {
 
     for (SizeType i = 0; i < n; i++) {
         char name1[10];
-        sprintf(name1, format, i);
+        snprintf(name1, sizeof(name1), format, i);
 
         for (SizeType j = 0; j < n; j++) {
             char name2[10];
-            sprintf(name2, format, j);
+            snprintf(name2, sizeof(name2), format, j);
             x[name1];
             EXPECT_EQ(static_cast<int>(i * n + j), x[name1][name2].GetInt());
         }

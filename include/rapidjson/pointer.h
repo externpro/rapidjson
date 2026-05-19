@@ -242,7 +242,8 @@ public:
         GenericPointer r;
         r.allocator_ = allocator;
         Ch *p = r.CopyFromRaw(*this, 1, token.length + 1);
-        std::memcpy(p, token.name, (token.length + 1) * sizeof(Ch));
+        if (p != 0 && token.name != 0)  // Ensure both pointers are valid
+            std::memcpy(p, token.name, (token.length + 1) * sizeof(Ch));
         r.tokens_[tokenCount_].name = p;
         r.tokens_[tokenCount_].length = token.length;
         r.tokens_[tokenCount_].index = token.index;
@@ -892,7 +893,7 @@ private:
         if (rhs.tokenCount_ > 0) {
             std::memcpy(tokens_, rhs.tokens_, rhs.tokenCount_ * sizeof(Token));
         }
-        if (nameBufferSize > 0) {
+        if (nameBufferSize > 0 && rhs.nameBuffer_ != 0) {
             std::memcpy(nameBuffer_, rhs.nameBuffer_, nameBufferSize * sizeof(Ch));
         }
 

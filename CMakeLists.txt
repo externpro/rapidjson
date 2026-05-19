@@ -1,4 +1,4 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.5...3.31)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.5...4.3)
 
 SET(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
 
@@ -7,7 +7,6 @@ set(LIB_MINOR_VERSION "1")
 set(LIB_PATCH_VERSION "0")
 set(LIB_VERSION_STRING "${LIB_MAJOR_VERSION}.${LIB_MINOR_VERSION}.${LIB_PATCH_VERSION}")
 
-set(CMAKE_PROJECT_TOP_LEVEL_INCLUDES .devcontainer/cmake/xproinc.cmake)
 PROJECT(RapidJSON VERSION "${LIB_VERSION_STRING}" LANGUAGES CXX)
 
 # compile in release with debug info mode by default
@@ -149,7 +148,7 @@ SET(INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_INCLUDEDIR}" CACHE PATH "The directory 
 SET(LIB_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}" CACHE STRING "Directory where lib will install")
 SET(DOC_INSTALL_DIR "${CMAKE_INSTALL_DATADIR}/doc/${PROJECT_NAME}" CACHE PATH "Path to the documentation")
 
-IF(NOT DEFINED XP_NAMESPACE)
+IF(NOT COMMAND xpExternPackage)
     SET(_CMAKE_INSTALL_DIR "${LIB_INSTALL_DIR}/cmake/${PROJECT_NAME}")
 ELSE()
     SET(_CMAKE_INSTALL_DIR "${CMAKE_INSTALL_DATADIR}/cmake")
@@ -160,16 +159,16 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 set(lib_name ${PROJECT_NAME})
 set(targetsFile ${PROJECT_NAME}-targets)
-if(DEFINED XP_NAMESPACE)
+if(COMMAND xpExternPackage)
     set(CMAKE_INSTALL_CMAKEDIR "${CMAKE_INSTALL_DIR}")
-    xpExternPackage(REPO_NAME rapidjson NAMESPACE ${XP_NAMESPACE}
-      TARGETS_FILE ${targetsFile} LIBRARIES ${lib_name}
+    xpExternPackage(REPO_NAME rapidjson TARGETS_FILE ${targetsFile}
+      LIBRARIES ${lib_name} DEFAULT_TARGETS ${lib_name}
       BASE v${CMAKE_PROJECT_VERSION}-763 XPDIFF "patch"
       WEB "http://Tencent.github.io/rapidjson/" UPSTREAM "github.com/Tencent/rapidjson"
       DESC "A fast JSON parser/generator for C++ with both SAX/DOM style API"
       LICENSE "[MIT](https://raw.githubusercontent.com/Tencent/rapidjson/master/license.txt 'MIT License')"
       )
-    set(nameSpace NAMESPACE ${XP_NAMESPACE}::)
+    set(nameSpace NAMESPACE rapidjson::)
     set(OPT_INSTALL EXCLUDE_FROM_ALL)
 endif()
 
