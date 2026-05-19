@@ -26,7 +26,7 @@ static char* ReadFile(const char* filename, size_t& length) {
         "../../bin/jsonchecker",
         "../../../bin/jsonchecker"
     };
-    char buffer[1024];
+    char buffer[4096];
     FILE *fp = 0;
     for (size_t i = 0; i < sizeof(paths) / sizeof(paths[0]); i++) {
         snprintf(buffer, sizeof(buffer), "%s/%s", paths[i], filename);

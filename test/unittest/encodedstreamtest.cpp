@@ -49,7 +49,7 @@ protected:
             "../../bin/encodings",
             "../../../bin/encodings"
         };
-        char buffer[1024];
+        char buffer[4096];
         for (size_t i = 0; i < sizeof(paths) / sizeof(paths[0]); i++) {
             snprintf(buffer, sizeof(buffer), "%s/%s", paths[i], filename);
             FILE *fp = fopen(buffer, "rb");
