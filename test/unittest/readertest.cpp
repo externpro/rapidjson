@@ -633,7 +633,7 @@ static void TestParseNumberError() {
     { \
         char buffer[2048]; \
         ASSERT_LT(std::strlen(str), 2048u); \
-        sprintf(buffer, "%s", str); \
+        snprintf(buffer, sizeof(buffer), "%s", str); \
         InsituStringStream s(buffer); \
         BaseReaderHandler<> h; \
         Reader reader; \
@@ -1418,12 +1418,12 @@ public:
   WIStreamWrapper(std::wistream& is) : is_(is) {}
 
   Ch Peek() const {
-    unsigned c = is_.peek();
+    auto c = is_.peek();
     return c == std::char_traits<wchar_t>::eof() ? Ch('\0') : static_cast<Ch>(c);
   }
 
   Ch Take() {
-    unsigned c = is_.get();
+    auto c = is_.get();
     return c == std::char_traits<wchar_t>::eof() ? Ch('\0') : static_cast<Ch>(c);
   }
 
