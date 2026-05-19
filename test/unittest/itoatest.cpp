@@ -92,7 +92,7 @@ static void Verify(void(*f)(T, char*), char* (*g)(T, char*)) {
 }
 
 static void u32toa_naive(uint32_t value, char* buffer) {
-    char temp[10];
+    char temp[12];
     char *p = temp;
     do {
         *p++ = static_cast<char>(char(value % 10) + '0');
@@ -116,7 +116,7 @@ static void i32toa_naive(int32_t value, char* buffer) {
 }
 
 static void u64toa_naive(uint64_t value, char* buffer) {
-    char temp[20];
+    char temp[22];
     char *p = temp;
     do {
         *p++ = static_cast<char>(char(value % 10) + '0');
