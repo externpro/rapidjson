@@ -162,7 +162,7 @@ set(targetsFile ${PROJECT_NAME}-targets)
 if(COMMAND xpExternPackage)
     set(CMAKE_INSTALL_CMAKEDIR "${CMAKE_INSTALL_DIR}")
     xpExternPackage(REPO_NAME rapidjson TARGETS_FILE ${targetsFile}
-      LIBRARIES ${lib_name} DEFAULT_TARGETS ${lib_name}
+      LIBRARIES ${lib_name} DEFAULT_TARGETS ${lib_name} PVT_DEPS googletest
       BASE v${CMAKE_PROJECT_VERSION}-763 XPDIFF "patch"
       WEB "http://Tencent.github.io/rapidjson/" UPSTREAM "github.com/Tencent/rapidjson"
       DESC "A fast JSON parser/generator for C++ with both SAX/DOM style API"
